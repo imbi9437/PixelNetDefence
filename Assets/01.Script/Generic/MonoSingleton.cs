@@ -31,7 +31,7 @@ namespace Lim.Generic
             }
         }
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (_instance) Destroy(this as T);
             else _instance = this as T;
@@ -46,7 +46,12 @@ namespace Lim.Generic
 
         public void ExecuteEvent<T1>(object sender, EventHandler<T1> handler, T1 args) where T1 : EventArgs
         {
-            throw new NotImplementedException();
+            handler?.Invoke(sender,args);
+        }
+
+        public void ExecuteEvent(object sender, EventHandler handler)
+        {
+            handler?.Invoke(sender,null);
         }
     }
 }

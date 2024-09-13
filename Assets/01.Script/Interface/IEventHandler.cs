@@ -8,5 +8,7 @@ namespace Lim.Interface
     public interface IEventHandler
     {
         public void ExecuteEvent<T>(object sender, EventHandler<T> handler, T args) where T : EventArgs;
+
+        public void ExecuteEvent(object sender, EventHandler handler);
     }
 }
