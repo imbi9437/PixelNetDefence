@@ -17,14 +17,17 @@ namespace Lim.System
             public EventHandler OnSaveUserDataError;
             public EventHandler<LoadUserDataArgs> OnLoadUserDataComplete;
             public EventHandler OnLoadUserDataError;
+            
+            public EventHandler OnSaveSettingDataComplete;
+            public EventHandler OnSaveSettingDataError;
+            public EventHandler<LoadSettingDataArgs> OnLoadSettingDataComplete;
+            public EventHandler OnLoadSettingDataError;
         }
         
         private const string SettingFileName = "Settings.json";
         private const string UserDataFileName = "UserData.json";
         private string _directory;
-
-        public UserData Data;
-
+        
         public static Events SubScribe = new Events();
 
         protected override void Awake()
@@ -33,30 +36,13 @@ namespace Lim.System
             _directory = $"{Application.persistentDataPath}/Saves";
         }
 
-        private void OnEnable()
-        {
-            SubScribe.OnSaveUserDataComplete += (sender, args) => Debug.Log("Save Complete");
-            SubScribe.OnLoadUserDataComplete += (sender, args) =>
-            {
-                Data = args.Data;
-                Debug.Log("Load Complete");
-            };
-        }
+        public void SaveUserData(UserData data) => SaveUserDataAsync(data).Forget();
+        public void LoadUserData() => LoadUserDataAsync().Forget();
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                SaveUserData(Data).Forget();
-            }
-
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                LoadUserData().Forget();
-            }
-        }
-
-        private async UniTaskVoid SaveUserData(UserData data)
+        public void SaveSettingData(SettingData data) => SaveSettingDataAsync(data).Forget();
+        public void LoadSettingData() => LoadSettingDataAsync().Forget();
+        
+        private async UniTaskVoid SaveUserDataAsync(UserData data)
         {
             CheckDirectory();
             
@@ -75,8 +61,7 @@ namespace Lim.System
                 ExecuteEvent(this, SubScribe.OnSaveUserDataError);
             }
         }
-
-        private async UniTaskVoid LoadUserData()
+        private async UniTaskVoid LoadUserDataAsync()
         {
             try
             {
@@ -98,6 +83,48 @@ namespace Lim.System
                 ExecuteEvent(this,SubScribe.OnLoadUserDataError);
             }
         }
+        
+        private async UniTaskVoid SaveSettingDataAsync(SettingData data)
+        {
+            CheckDirectory();
+            
+            try
+            {
+                var json = JsonConvert.SerializeObject(data);
+                var path = Path.Combine(_directory, SettingFileName);
+            
+                await File.WriteAllTextAsync(path,json);
+                
+                ExecuteEvent(this,SubScribe.OnSaveSettingDataComplete);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Save SettingData Issue : {e}");
+                ExecuteEvent(this, SubScribe.OnSaveSettingDataError);
+            }
+        }
+        private async UniTaskVoid LoadSettingDataAsync()
+        {
+            try
+            {
+                var path = Path.Combine(_directory, SettingFileName);
+
+                if (File.Exists(path))
+                {
+                    var json = await File.ReadAllTextAsync(path);
+                    var data = JsonConvert.DeserializeObject<SettingData>(json);
+                    
+                    LoadSettingDataArgs args = new LoadSettingDataArgs() { Data = data };
+
+                    ExecuteEvent(this, SubScribe.OnLoadSettingDataComplete, args);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log($"Load SettingData Issue : {e}");
+                ExecuteEvent(this,SubScribe.OnLoadSettingDataError);
+            }
+        }
 
         private void CheckDirectory()
         {
@@ -106,6 +133,7 @@ namespace Lim.System
         }
     }
     
+    // todo : Data Class 이동
     [Serializable]
     public class UserData
     {
