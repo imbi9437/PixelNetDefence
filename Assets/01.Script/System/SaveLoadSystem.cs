@@ -30,6 +30,8 @@ namespace Lim.System
         
         public static Events SubScribe = new Events();
 
+        public UserData Data;
+        
         protected override void Awake()
         {
             base.Awake();
@@ -49,9 +51,10 @@ namespace Lim.System
             try
             {
                 var json = JsonConvert.SerializeObject(data);
+                var encryptJson = EncryptAES.Encrypt(json);
                 var path = Path.Combine(_directory, UserDataFileName);
             
-                await File.WriteAllTextAsync(path,json);
+                await File.WriteAllBytesAsync(path,encryptJson);
                 
                 ExecuteEvent(this,SubScribe.OnSaveUserDataComplete);
             }
@@ -69,8 +72,9 @@ namespace Lim.System
 
                 if (File.Exists(path))
                 {
-                    var json = await File.ReadAllTextAsync(path);
-                    var data = JsonConvert.DeserializeObject<UserData>(json);
+                    var json = await File.ReadAllBytesAsync(path);
+                    var decryptJson = EncryptAES.Decrypt(json);
+                    var data = JsonConvert.DeserializeObject<UserData>(decryptJson);
 
                     LoadUserDataArgs args = new LoadUserDataArgs() { Data = data };
 
