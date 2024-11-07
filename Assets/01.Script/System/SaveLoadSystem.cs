@@ -29,8 +29,6 @@ namespace Lim.System
         private string _directory;
         
         public static Events SubScribe = new Events();
-
-        public UserData Data;
         
         protected override void Awake()
         {
