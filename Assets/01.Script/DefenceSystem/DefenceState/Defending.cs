@@ -2,17 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Defending : MonoBehaviour
+namespace Lim.System.Defence
 {
-    // Start is called before the first frame update
-    void Start()
+    public class Defending : BaseDefenceState
     {
+        public override DefenceState State => DefenceState.Defending;
         
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
+        private void OnEnable()
+        {
+            Debug.Log("Wait Enable");
+        }
         
+        private void Update()
+        {
+            //Debug.Log("Waiting");
+        }
+        
+        private void OnDisable()
+        {
+            Debug.Log("Wait Disable");
+        }
     }
 }

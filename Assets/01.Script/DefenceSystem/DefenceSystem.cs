@@ -30,14 +30,6 @@ namespace Lim.System.Defence
             Initialize();
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                ChangeState(TestState);
-            }
-        }
-
         private void Initialize()
         {
             _stateDic ??= new Dictionary<DefenceState, BaseDefenceState>();
@@ -47,6 +39,7 @@ namespace Lim.System.Defence
 
             for (int i = 0; i < states.Length; i++)
             {
+                states[i].Initialize(this);
                 _stateDic.TryAdd(states[i].State, states[i]);
             }
             
