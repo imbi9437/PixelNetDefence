@@ -33,7 +33,7 @@ namespace Lim.Generic
 
         protected virtual void Awake()
         {
-            if (_instance) Destroy(this as T);
+            if (_instance) Destroy(gameObject);
             else _instance = this as T;
 
             if (isDontDestroy) DontDestroyOnLoad(gameObject);
