@@ -15,20 +15,10 @@ namespace Lim.System
         private const float ProgressAsyncValue = 0.9f;
         private const float SceneChangeDelay = 2.0f;
 
-        public class Event
-        {
-            public EventHandler<SceneChangeArgs> OnStartLoad;
-            public EventHandler<SceneChangeArgs> OnLoading;
-            public EventHandler<SceneChangeArgs> OnCompleteLoad;
-        }
-
-        private Event Subscribe = new Event();
-        private SceneChangeArgs EventArgsCache = new SceneChangeArgs();
-
         private Dictionary<SceneType, List<SceneInfo>> _sceneDic = new Dictionary<SceneType, List<SceneInfo>>();
         private SceneInfo loadingSceneInfo;
 
-        [SerializeField] private List<SceneInfo> SceneInfo;
+        [SerializeField] private List<SceneInfo> SceneInfos;
 
         private void Start()
         {
@@ -44,29 +34,39 @@ namespace Lim.System
                 _sceneDic.TryAdd((SceneType)value, new List<SceneInfo>());
             }
 
-            for (int i = 0; i < SceneInfo.Count; i++)
+            for (int i = 0; i < SceneInfos.Count; i++)
             {
-                _sceneDic[SceneInfo[i].sceneType].Add(SceneInfo[i]);
+                _sceneDic[SceneInfos[i].sceneType].Add(SceneInfos[i]);
             }
 
             loadingSceneInfo = _sceneDic[SceneType.Loading].First();
-
-            EventArgsCache.CurScene =
-                SceneInfo.Find(info => info.sceneIndex == SceneManager.GetActiveScene().buildIndex);
-
-            Subscribe.OnCompleteLoad += (sender, args) =>
-            {
-                EventArgsCache.PrevScene = EventArgsCache.CurScene;
-                EventArgsCache.CurScene = args.TargetScene;
-                EventArgsCache.TargetScene = null;
-            };
         }
-    }
 
-    public class SceneChangeArgs : EventArgs
-    {
-        public SceneInfo PrevScene;
-        public SceneInfo CurScene;
-        public SceneInfo TargetScene;
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                ChangeSceneWithLoading(SceneInfos[0]).Forget();
+            }
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                ChangeSceneWithLoading(SceneInfos[1]).Forget();
+            }
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                ChangeSceneWithLoading(SceneInfos[2]).Forget();
+            }
+        }
+
+        private async UniTaskVoid ChangeSceneWithLoading(SceneInfo info)
+        {
+            await SceneManager.LoadSceneAsync(info.sceneIndex).ToUniTask();
+        }
+
+        private async UniTaskVoid ChangeSceneWithoutLoading()
+        {
+            
+        }
     }
 }
