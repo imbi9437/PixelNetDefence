@@ -12,14 +12,12 @@ namespace Lim.System
 {
     public class SceneSystem : MonoSingleton<SceneSystem>
     {
-        private const float ProgressAsyncValue = 0.9f;
-        private const float SceneChangeDelay = 2.0f;
-
-        private Dictionary<SceneType, List<SceneInfo>> _sceneDic = new Dictionary<SceneType, List<SceneInfo>>();
-        private SceneInfo loadingSceneInfo;
+        // 씬 개수가 많지 않아 굳이 Dictionary로 구분 안해도 될듯 추후 씬 추가 되면 그때 하는 걸로
+        private Dictionary<SceneType, SceneInfo> _sceneDic = new Dictionary<SceneType, SceneInfo>();
+        private SceneType _currentType;
 
         [SerializeField] private List<SceneInfo> SceneInfos;
-
+        
         private void Start()
         {
             Initialize();
@@ -31,42 +29,61 @@ namespace Lim.System
 
             foreach (var value in Enum.GetValues(typeof(SceneType)))
             {
-                _sceneDic.TryAdd((SceneType)value, new List<SceneInfo>());
+                _sceneDic.TryAdd((SceneType)value, null);
             }
 
-            for (int i = 0; i < SceneInfos.Count; i++)
+            foreach (var info in SceneInfos)
             {
-                _sceneDic[SceneInfos[i].sceneType].Add(SceneInfos[i]);
+                if (_sceneDic[info.sceneType] != null)
+                {
+                    Debug.LogError("There is Same Type Scene");
+                }
+                else
+                {
+                    _sceneDic[info.sceneType] = info;
+                }
             }
 
-            loadingSceneInfo = _sceneDic[SceneType.Loading].First();
+            _currentType = SceneType.Title;
+
+            SceneManager.sceneLoaded += (arg0, mode) => Debug.Log(arg0.name);
         }
 
-        private void Update()
+        /// <summary>로딩 씬 이동 없이 바로 이동</summary>
+        private async UniTask ChangeScene(SceneType type)
         {
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                ChangeSceneWithLoading(SceneInfos[0]).Forget();
-            }
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                ChangeSceneWithLoading(SceneInfos[1]).Forget();
-            }
+            var operation = SceneManager.LoadSceneAsync(_sceneDic[type].sceneIndex);
+            operation.allowSceneActivation = false;
 
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                ChangeSceneWithLoading(SceneInfos[2]).Forget();
-            }
-        }
+            await UniTask.WaitUntil(() => operation.progress >= 0.9f);
 
-        private async UniTaskVoid ChangeSceneWithLoading(SceneInfo info)
-        {
-            await SceneManager.LoadSceneAsync(info.sceneIndex).ToUniTask();
-        }
-
-        private async UniTaskVoid ChangeSceneWithoutLoading()
-        {
+            operation.allowSceneActivation = true;
             
+            _currentType = type;
+        }
+        
+        /// <summary>로딩 씬 포함 딜레이 설정 필요</summary>
+        private async UniTaskVoid ChangeScene(SceneType type,int time)
+        {
+            await SceneManager.LoadSceneAsync(_sceneDic[SceneType.Loading].sceneIndex).ToUniTask();
+
+            _currentType = SceneType.Loading;
+
+            var operation = SceneManager.LoadSceneAsync(_sceneDic[type].sceneIndex);
+            operation.allowSceneActivation = false;
+
+            var changeTask = UniTask.WaitUntil(() => operation.progress >= 0.9f);
+            var timeTask = UniTask.Delay(time * 1000);
+            //var changeTask = ChangeScene(type);
+
+            // 이쪽 부분에서 최소 딜레이 설정 안됨
+            // 아마 AllowSceneActivation이 True라서 바로 이동하는듯
+            // 해결방안 찾기 전까지 함부 재사용 불가
+            await UniTask.WhenAll(changeTask, timeTask);
+
+            operation.allowSceneActivation = true;
+
+            _currentType = type;
         }
     }
 }

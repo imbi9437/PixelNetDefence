@@ -39,7 +39,7 @@ public static class RestAPI
         var url = $"Main Url/{uri}";
         RestAPIClass<string> reVal = new RestAPIClass<string>();
 
-        byte[] bodyRow = null;
+        //byte[] bodyRow = null;
         var request = new UnityWebRequest(url, "GET");
         request.downloadHandler = new DownloadHandlerBuffer();
         
