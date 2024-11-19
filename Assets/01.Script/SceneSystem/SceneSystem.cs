@@ -45,12 +45,13 @@ namespace Lim.System
             }
 
             _currentType = SceneType.Title;
-
-            SceneManager.sceneLoaded += (arg0, mode) => Debug.Log(arg0.name);
         }
 
+        public void ChangeScene(SceneType type) => ChangeSceneAsync(type).Forget();
+        public void ChangeScene(SceneType type, int time) => ChangeSceneAsync(type, time).Forget();
+        
         /// <summary>로딩 씬 이동 없이 바로 이동</summary>
-        private async UniTask ChangeScene(SceneType type)
+        private async UniTask ChangeSceneAsync(SceneType type)
         {
             var operation = SceneManager.LoadSceneAsync(_sceneDic[type].sceneIndex);
             operation.allowSceneActivation = false;
@@ -63,7 +64,7 @@ namespace Lim.System
         }
         
         /// <summary>로딩 씬 포함 딜레이 설정 필요</summary>
-        private async UniTaskVoid ChangeScene(SceneType type,int time)
+        private async UniTaskVoid ChangeSceneAsync(SceneType type,int time)
         {
             await SceneManager.LoadSceneAsync(_sceneDic[SceneType.Loading].sceneIndex).ToUniTask();
 
