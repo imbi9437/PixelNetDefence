@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Lim.System
 {
-    public class SaveLoadSystem : MonoSingleton<SaveLoadSystem>
+    public partial class SaveLoadSystem : MonoSingleton<SaveLoadSystem>
     {
         public class Events
         {
@@ -35,12 +35,14 @@ namespace Lim.System
             base.Awake();
             _directory = $"{Application.persistentDataPath}/Saves";
         }
+        
+        
+
+        #region Save Function
 
         public void SaveUserData(UserData data) => SaveUserDataAsync(data).Forget();
-        public void LoadUserData() => LoadUserDataAsync().Forget();
-
         public void SaveSettingData(SettingData data) => SaveSettingDataAsync(data).Forget();
-        public void LoadSettingData() => LoadSettingDataAsync().Forget();
+        
         
         private async UniTaskVoid SaveUserDataAsync(UserData data)
         {
@@ -62,30 +64,6 @@ namespace Lim.System
                 ExecuteEvent(this, SubScribe.OnSaveUserDataError);
             }
         }
-        private async UniTaskVoid LoadUserDataAsync()
-        {
-            try
-            {
-                var path = Path.Combine(_directory, UserDataFileName);
-
-                if (File.Exists(path))
-                {
-                    var json = await File.ReadAllBytesAsync(path);
-                    var decryptJson = EncryptAES.Decrypt(json);
-                    var data = JsonConvert.DeserializeObject<UserData>(decryptJson);
-
-                    LoadUserDataArgs args = new LoadUserDataArgs() { Data = data };
-
-                    ExecuteEvent(this, SubScribe.OnLoadUserDataComplete, args);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.Log($"Load UserData Issue : {e}");
-                ExecuteEvent(this,SubScribe.OnLoadUserDataError);
-            }
-        }
-        
         private async UniTaskVoid SaveSettingDataAsync(SettingData data)
         {
             CheckDirectory();
@@ -103,6 +81,38 @@ namespace Lim.System
             {
                 Debug.LogError($"Save SettingData Issue : {e}");
                 ExecuteEvent(this, SubScribe.OnSaveSettingDataError);
+            }
+        }
+
+        #endregion
+
+        #region Load Function
+
+        public void LoadUserData() => LoadUserDataAsync().Forget();
+        public void LoadSettingData() => LoadSettingDataAsync().Forget();
+
+        
+        private async UniTaskVoid LoadUserDataAsync()
+        {
+            try
+            {
+                var path = Path.Combine(_directory, UserDataFileName);
+                
+                if (File.Exists(path))
+                {
+                    var json = await File.ReadAllBytesAsync(path);
+                    var decryptJson = EncryptAES.Decrypt(json);
+                    var data = JsonConvert.DeserializeObject<UserData>(decryptJson);
+
+                    LoadUserDataArgs args = new LoadUserDataArgs() { Data = data };
+
+                    ExecuteEvent(this, SubScribe.OnLoadUserDataComplete, args);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log($"Load UserData Issue : {e}");
+                ExecuteEvent(this,SubScribe.OnLoadUserDataError);
             }
         }
         private async UniTaskVoid LoadSettingDataAsync()
@@ -127,20 +137,49 @@ namespace Lim.System
                 ExecuteEvent(this,SubScribe.OnLoadSettingDataError);
             }
         }
+        
+        #endregion
+
+        #region Initialzed Function
+
+        public void Initialize()
+        {
+            CheckDirectory();
+            CheckFile();
+            
+            LoadUserData();
+            LoadSettingData();
+        }
+
+        #endregion
+
+        #region Generic Function
 
         private void CheckDirectory()
         {
             if (Directory.Exists(_directory)) return;
             Directory.CreateDirectory(_directory);
         }
-    }
-    
-    // todo : Data Class 이동
-    [Serializable]
-    public class UserData
-    {
-        public string name;
-        public int level;
+
+        private void CheckFile()
+        {
+            var userPath = Path.Combine(_directory, UserDataFileName);
+            var settingPath = Path.Combine(_directory, SettingFileName);
+
+            if (File.Exists(userPath) == false)
+            {
+                var data = new UserData();
+                SaveUserData(data);
+            }
+
+            if (File.Exists(settingPath) == false)
+            {
+                var data = new SettingData();
+                SaveSettingData(data);
+            }
+        }
+
+        #endregion
     }
 
     [Serializable]
