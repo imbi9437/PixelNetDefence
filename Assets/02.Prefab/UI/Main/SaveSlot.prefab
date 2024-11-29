@@ -684,6 +684,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c02bb5321a3b5e140b0396b4f9d65f15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  slotButton: {fileID: 3390995317833926510}
   emptyObject: {fileID: 3880813903039462869}
   dataUIObject: {fileID: 2170854793833045236}
   slotData:

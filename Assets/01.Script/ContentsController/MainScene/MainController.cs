@@ -1,7 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+
+public enum MainUIControllerType
+{
+    None,
+    SaveSlot,
+    Credit,
+}
 
 public class MainController : MonoBehaviour
 {
@@ -18,15 +27,25 @@ public class MainController : MonoBehaviour
     [SerializeField] private Canvas creditCanvas;
     [SerializeField] private Canvas saveSlotCanvas;
 
+    [SerializeField] private SaveUIController saveUIController;
+    
     private void Start()
     {
         quitButton.onClick.AddListener(Application.Quit);
         creditButton.onClick.AddListener(() => creditCanvas.gameObject.SetActive(true));
-        newGameButton.onClick.AddListener(NewGameSet);
+        newGameButton.onClick.AddListener(SetNewGame);
+        loadGameButton.onClick.AddListener(SetLoadGame);
     }
 
-    private void NewGameSet()
+    private void SetNewGame()
     {
-        saveSlotCanvas.gameObject.SetActive(true);
+        saveUIController.isNewGame = true;
+        saveUIController.gameObject.SetActive(true);
+    }
+
+    private void SetLoadGame()
+    {
+        saveUIController.isNewGame = false;
+        saveUIController.gameObject.SetActive(true);
     }
 }

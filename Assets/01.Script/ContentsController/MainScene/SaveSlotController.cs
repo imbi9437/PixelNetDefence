@@ -3,16 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class SaveSlotController : MonoBehaviour
 {
-    public GameObject emptyObject;
-    public GameObject dataUIObject;
-    public SlotData slotData;
-
-    public void Init(GameData data)
+    [SerializeField] private Button slotButton;
+    [SerializeField] private GameObject emptyObject;
+    [SerializeField] private GameObject dataUIObject;
+    [SerializeField] private SlotData slotData;
+    
+    public void Init(GameData data, UnityAction clickEvent)
     {
+        slotButton.onClick.RemoveAllListeners();
+        slotButton.onClick.AddListener(clickEvent);
+        
         emptyObject.SetActive(data == null);
         dataUIObject.SetActive(data != null);
 

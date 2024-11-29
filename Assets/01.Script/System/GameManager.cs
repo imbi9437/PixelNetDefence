@@ -9,8 +9,8 @@ public class GameManager : MonoSingleton<GameManager>
 {
     private const int GameDataSlotCount = 5;
     public UserData UserData;
-    public GameData SelectData;
-
+    public GameData SelectGameData;
+    
     protected override void Awake()
     {
         base.Awake();

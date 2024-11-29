@@ -7,5 +7,16 @@ using UnityEngine;
 public class UserData
 {
     public int Cash = 0;
-    public List<GameData> GameData;
+    public Dictionary<int, GameData> GameData;
+
+    public UserData()
+    {
+        Cash = 200;
+        GameData = new Dictionary<int, GameData>();
+
+        for (int i = 0; i < 5; i++)
+        {
+            GameData.Add(i,null);
+        }
+    }
 }

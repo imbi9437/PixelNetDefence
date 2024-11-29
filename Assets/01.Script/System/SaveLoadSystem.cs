@@ -29,6 +29,8 @@ namespace Lim.System
         private string _directory;
         
         public static Events SubScribe = new Events();
+
+        private GameManager GameManager => GameManager.Instance;
         
         protected override void Awake()
         {
@@ -180,6 +182,11 @@ namespace Lim.System
         }
 
         #endregion
+
+        public void CreateNewGameData(int num)
+        {
+            GameManager.UserData.GameData[num] = new GameData(num);
+        }
     }
 
     [Serializable]
